@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: my-flask-app
+    env: python
+    region: oregon  # or any other region
+    plan: free
+    buildCommand: "poetry install"
+    startCommand: "poetry run gunicorn -w 4 -b 0.0.0.0:5000 app:app"
