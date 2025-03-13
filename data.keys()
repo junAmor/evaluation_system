@@ -1,0 +1,2 @@
+print("DEBUG: Type of data =", type(data))
+print("DEBUG: Data content =", data)
