@@ -1,9 +1,7 @@
-[tool.poetry]
-name = "evaluation_system"
+[project]
+name = "repl-nix-workspace"
 version = "0.1.0"
-description = "This system is about showing the rankings of challengers in the Leaderboard. It is also for judges to evaluate the participants based on their performances."
-authors = ["Jerome Brenzuela <jeromebrenzuela935@gmail.com>"]
-
+description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
     "email-validator>=2.2.0",
