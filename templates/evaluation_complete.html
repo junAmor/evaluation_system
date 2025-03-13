@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center">
+        <h1 class="display-4 mb-4">Thank You for Your Evaluations!</h1>
+        <p class="lead mb-4">Your dedication to evaluating all participants is greatly appreciated. Your input helps recognize and celebrate innovation in the Arduino Challenge.</p>
+        <div class="mt-5">
+            <a href="{{ url_for('leaderboard') }}" class="btn btn-primary btn-lg">View Leaderboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

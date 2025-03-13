@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - Evaluation System{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2><i class="fas fa-cog"></i> System Settings</h2>
+
+    {% if current_user.role == 'admin' %}
+    <div class="settings-grid">
+        <div class="settings-card">
+            <h3><i class="fas fa-trash-alt"></i> Reset Data</h3>
+            <p>This will delete all evaluations and reset scores to zero. This action cannot be undone.</p>
+            <form method="POST" action="{{ url_for('reset_all_data') }}" onsubmit="return confirm('This will delete ALL evaluations and reset scores to zero. This action cannot be undone. Are you sure?')">
+                <div class="form-check mb-2">
+                    <input type="checkbox" id="reset_event_details" name="reset_event_details" class="form-check-input">
+                    <label class="form-check-label" for="reset_event_details">Reset event details to default</label>
+                </div>
+                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i> Reset All Data</button>
+            </form>
+        </div>
+
+        <div class="settings-card">
+            <h3><i class="fas fa-file-download"></i> Download Reports</h3>
+            <p>Download event data in various formats.</p>
+            <div class="settings-actions">
+                <a href="{{ url_for('download_report_pdf') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-file-pdf"></i> PDF Report
+                </a>
+                <a href="{{ url_for('download_report_excel') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-excel"></i> Excel Report
+                </a>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <h3><i class="fas fa-edit"></i> Event Details</h3>
+            <p>Update event information and branding.</p>
+            <form method="POST" action="{{ url_for('update_event_details') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="event_name">Event Name</label>
+                    <input type="text" id="event_name" name="event_name" value="{{ event_details.event_name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="event_description">Description</label>
+                    <textarea id="event_description" name="event_description" rows="2">{{ event_details.event_description }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="event_logo">Event Logo</label>
+                    <input type="file" id="event_logo" name="event_logo" accept="image/*">
+                    {% if event_details.logo_path %}
+                    <p class="text-info">Current logo: {{ event_details.logo_path }}</p>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+            </form>
+        </div>
+
+
+
+        <div class="settings-card">
+            <h3><i class="fas fa-users-cog"></i> User Management</h3>
+            <p>Manage admin users and credentials.</p>
+            <form method="POST" action="{{ url_for('add_admin_user') }}">
+                <div class="form-group">
+                    <label for="admin_username">Username</label>
+                    <input type="text" id="admin_username" name="admin_username" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin_password">Password</label>
+                    <input type="password" id="admin_password" name="admin_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Add Admin</button>
+            </form>
+
+            <div class="admin-users-list">
+                <h4>Current Admins</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for admin in admin_users %}
+                        <tr>
+                            <td>{{ admin.username }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('delete_admin_user', admin_id=admin.id) }}" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this admin?')">
+                                    <button type="submit" class="btn btn-danger btn-sm" {% if admin.id == current_user.id %}disabled title="Cannot delete your own account"{% endif %}>
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                                <button class="btn btn-warning btn-sm change-password-btn" data-userid="{{ admin.id }}">
+                                    <i class="fas fa-key"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <h3><i class="fas fa-balance-scale"></i> Evaluation Criteria</h3>
+            <p>Manage scoring weights and evaluation rules.</p>
+            <form method="POST" action="{{ url_for('update_evaluation_criteria') }}">
+                <div class="criteria-group">
+                    <div class="form-group">
+                        <label for="weight_project_design">Project Design Weight (%)</label>
+                        <input type="number" id="weight_project_design" name="weight_project_design" value="{{ criteria.weight_project_design }}" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weight_functionality">Functionality Weight (%)</label>
+                        <input type="number" id="weight_functionality" name="weight_functionality" value="{{ criteria.weight_functionality }}" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weight_presentation">Presentation Weight (%)</label>
+                        <input type="number" id="weight_presentation" name="weight_presentation" value="{{ criteria.weight_presentation }}" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weight_web_design">Web Design Weight (%)</label>
+                        <input type="number" id="weight_web_design" name="weight_web_design" value="{{ criteria.weight_web_design }}" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weight_impact">Impact Weight (%)</label>
+                        <input type="number" id="weight_impact" name="weight_impact" value="{{ criteria.weight_impact }}" min="0" max="100" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="score_precision">Score Decimal Places</label>
+                    <select id="score_precision" name="score_precision">
+                        <option value="0" {% if criteria.score_precision == 0 %}selected{% endif %}>0 (Whole numbers only)</option>
+                        <option value="1" {% if criteria.score_precision == 1 %}selected{% endif %}>1 (e.g., 9.5)</option>
+                        <option value="2" {% if criteria.score_precision == 2 %}selected{% endif %}>2 (e.g., 9.25)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="min_score">Minimum Score</label>
+                    <input type="number" id="min_score" name="min_score" value="{{ criteria.min_score }}" min="0" max="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="max_score">Maximum Score</label>
+                    <input type="number" id="max_score" name="max_score" value="{{ criteria.max_score }}" min="1" max="100">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm">Save Criteria</button>
+            </form>
+        </div>
+
+        <div class="settings-card">
+            <h3><i class="fas fa-chart-bar"></i> Event Statistics</h3>
+            <p>View statistics about the Arduino Innovator Challenge event.</p>
+            <div class="stats-container">
+                <div class="stat-item">
+                    <span class="stat-label">Total Participants:</span>
+                    <span class="stat-value">{{ participant_count }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Evaluators:</span>
+                    <span class="stat-value">{{ evaluator_count }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Evaluations Completed:</span>
+                    <span class="stat-value">{{ completed_evaluations }} / {{ total_evaluations }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div id="passwordChangeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Change Password</h3>
+            <form id="changePasswordForm" method="POST">
+                <input type="hidden" id="user_id" name="user_id">
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password change modal
+        const modal = document.getElementById('passwordChangeModal');
+        const changePasswordBtns = document.querySelectorAll('.change-password-btn');
+        const closeBtn = document.querySelector('#passwordChangeModal .close-modal');
+        const passwordForm = document.getElementById('changePasswordForm');
+
+        changePasswordBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-userid');
+                document.getElementById('user_id').value = userId;
+                modal.style.display = 'block';
+            });
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        }
+
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Form validation for weights (must add up to 100%)
+        const criteriaForm = document.querySelector('form[action*="update_evaluation_criteria"]');
+        if (criteriaForm) {
+            criteriaForm.addEventListener('submit', function(e) {
+                const projectDesign = parseFloat(document.getElementById('weight_project_design').value);
+                const functionality = parseFloat(document.getElementById('weight_functionality').value);
+                const presentation = parseFloat(document.getElementById('weight_presentation').value);
+                const webDesign = parseFloat(document.getElementById('weight_web_design').value);
+                const impact = parseFloat(document.getElementById('weight_impact').value);
+
+                const sum = projectDesign + functionality + presentation + webDesign + impact;
+
+                if (Math.abs(sum - 100) > 0.01) {
+                    e.preventDefault();
+                    alert('Weights must add up to 100%');
+                }
+            });
+        }
+
+        // Password confirmation validation
+        if (passwordForm) {
+            passwordForm.addEventListener('submit', function(e) {
+                const newPassword = document.getElementById('new_password').value;
+                const confirmPassword = document.getElementById('confirm_password').value;
+
+                if (newPassword !== confirmPassword) {
+                    e.preventDefault();
+                    alert('Passwords do not match');
+                }
+            });
+        }
+    });
+    </script>
+    {% else %}
+    <div class="notice">
+        <p>You need administrator privileges to access settings.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

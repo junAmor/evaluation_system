@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Evaluation - {{ participant.name }}{% endblock %}
+
+{% block logo %}{% endblock %}
+
+{% block content %}
+<div class="evaluation-form">
+    <h2><i class="fas fa-edit"></i> Edit Evaluation for Group {{ participant.group_number }}: {{ participant.name }}</h2>
+    <p class="project-title">Project: {{ participant.project_title }}</p>
+
+    <form method="POST" action="{{ url_for('edit_evaluation', evaluation_id=evaluation.id) }}">
+        <div class="criteria-grid">
+            <div class="criteria-card">
+                <h3><i class="fas fa-drafting-compass"></i> Project Design <span class="weight">({{ "%.0f"|format(criteria.weight_project_design) }}%)</span></h3>
+                <p class="description">Evaluate the overall design, architecture, and organization of the project</p>
+                <div class="score-input">
+                    <label for="project_design">Score (1-100):</label>
+                    <input type="number" id="project_design" name="project_design" min="1" max="100" value="{{ evaluation.project_design }}" required>
+                </div>
+            </div>
+
+            <div class="criteria-card">
+                <h3><i class="fas fa-cogs"></i> Functionality <span class="weight">({{ "%.0f"|format(criteria.weight_functionality) }}%)</span></h3>
+                <p class="description">Evaluate how well the project works, features implemented, and code quality</p>
+                <div class="score-input">
+                    <label for="functionality">Score (1-100):</label>
+                    <input type="number" id="functionality" name="functionality" min="1" max="100" value="{{ evaluation.functionality }}" required>
+                </div>
+            </div>
+
+            <div class="criteria-card">
+                <h3><i class="fas fa-chalkboard-teacher"></i> Presentation <span class="weight">({{ "%.0f"|format(criteria.weight_presentation) }}%)</span></h3>
+                <p class="description">Evaluate the quality of the presentation, clarity, and communication</p>
+                <div class="score-input">
+                    <label for="presentation">Score (1-100):</label>
+                    <input type="number" id="presentation" name="presentation" min="1" max="100" value="{{ evaluation.presentation }}" required>
+                </div>
+            </div>
+
+            <div class="criteria-card">
+                <h3><i class="fas fa-laptop-code"></i> Web Design <span class="weight">({{ "%.0f"|format(criteria.weight_web_design) }}%)</span></h3>
+                <p class="description">Evaluate the user interface, user experience, and visual appeal</p>
+                <div class="score-input">
+                    <label for="web_design">Score (1-100):</label>
+                    <input type="number" id="web_design" name="web_design" min="1" max="100" value="{{ evaluation.web_design }}" required>
+                </div>
+            </div>
+
+            <div class="criteria-card">
+                <h3><i class="fas fa-chart-line"></i> Impact <span class="weight">({{ "%.0f"|format(criteria.weight_impact) }}%)</span></h3>
+                <p class="description">Evaluate the potential impact, innovation, and real-world application</p>
+                <div class="score-input">
+                    <label for="impact">Score (1-100):</label>
+                    <input type="number" id="impact" name="impact" min="1" max="100" value="{{ evaluation.impact }}" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="comments"><i class="fas fa-comment-alt"></i> Comments (Optional)</label>
+            <textarea id="comments" name="comments" rows="4">{{ evaluation.comments }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('select_participant') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Evaluation</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

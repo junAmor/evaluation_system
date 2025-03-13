@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+
+{% block title %}Innovation Challenge Rankings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">Innovation Challenge Rankings</h1>
+
+    <div class="status-bar">
+        <div class="evaluations-status">
+            <span class="status-label">Evaluations:</span>
+            <span class="status-value">{{ completed_evaluations }} / {{ total_evaluations }}</span>
+            {% if all_evaluations_complete %}
+            <span class="status-complete"><i class="fas fa-check-circle"></i> Complete</span>
+            {% else %}
+            <span class="status-incomplete"><i class="fas fa-clock"></i> In Progress</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="leaderboard-table-container">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Group</th>
+                    <th>Project</th>
+                    <th>Design <br />({{ "%.0f"|format(criteria.weight_project_design) }}%)</th>
+                    <th>Functionality <br />({{ "%.0f"|format(criteria.weight_functionality) }}%)</th>
+                    <th>Present <br />({{ "%.0f"|format(criteria.weight_presentation) }}%)</th>
+                    <th>Web <br />({{ "%.0f"|format(criteria.weight_web_design) }}%)</th>
+                    <th>Impact <br />({{ "%.0f"|format(criteria.weight_impact) }}%)</th>
+                    <th>Final <br />Score</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for participant in participants %}
+                <tr {% if loop.first %}class="winner"{% endif %}>
+                    <td>{{ loop.index }}</td>
+                    <td>Group {{ participant.group_number }}: {{ participant.name }}</td>
+                    <td>{{ participant.project_title }}</td>
+                    <td>{{ "%.2f"|format(participant.avg_weighted_project_design) }}</td>
+                    <td>{{ "%.2f"|format(participant.avg_weighted_functionality) }}</td>
+                    <td>{{ "%.2f"|format(participant.avg_weighted_presentation) }}</td>
+                    <td>{{ "%.2f"|format(participant.avg_weighted_web_design) }}</td>
+                    <td>{{ "%.2f"|format(participant.avg_weighted_impact) }}</td>
+                    <td class="final-score">{{ "%.2f"|format(participant.score) }}</td>
+                    <td>
+                        <button class="btn-details" data-id="{{ participant.id }}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if current_user.role == 'admin' and participants|length > 0 %}
+    <div class="winner-actions" style="display: flex; justify-content: center; margin-top: 2rem; margin-bottom: 4rem;">
+        <button id="announceWinner" class="btn btn-success">
+            <i class="fas fa-trophy"></i> Announce Winner
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Winner modal -->
+    <div id="winnerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="winnerContent">
+                <h1>🏆 The Winner Is 🏆</h1>
+                <div id="winnerName"></div>
+                <div id="winnerProject"></div>
+                <div id="winnerScore"></div>
+                <div id="winnerMessage">
+                    2nd Arduino Innovator Challenge Winner<br>
+                    <span id="displayGroupNumber">Group Number</span><br>
+                    <span id="displayProjectTitle">Project Title</span><br>
+                    Congratulations on your outstanding achievement! Your creativity, technical skills, and innovation have set a new standard of excellence.<br><br>
+                    Final Score: <span id="displayFinalScore"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details modal -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content details-modal-content">
+            <span class="close">&times;</span>
+            <div id="detailsContent">
+                <h2 id="detailsTitle"></h2>
+                <div id="detailsProject"></div>
+
+                <h3>Scores</h3>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>Criterion</th>
+                            <th>Original</th>
+                            <th>Weighted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Project Design ({{ "%.0f"|format(criteria.weight_project_design) }}%)</td>
+                            <td id="detailsProjectDesign"></td>
+                            <td id="detailsWeightedProjectDesign"></td>
+                        </tr>
+                        <tr>
+                            <td>Functionality ({{ "%.0f"|format(criteria.weight_functionality) }}%)</td>
+                            <td id="detailsFunctionality"></td>
+                            <td id="detailsWeightedFunctionality"></td>
+                        </tr>
+                        <tr>
+                            <td>Presentation ({{ "%.0f"|format(criteria.weight_presentation) }}%)</td>
+                            <td id="detailsPresentation"></td>
+                            <td id="detailsWeightedPresentation"></td>
+                        </tr>
+                        <tr>
+                            <td>Web Design ({{ "%.0f"|format(criteria.weight_web_design) }}%)</td>
+                            <td id="detailsWebDesign"></td>
+                            <td id="detailsWeightedWebDesign"></td>
+                        </tr>
+                        <tr>
+                            <td>Impact ({{ "%.0f"|format(criteria.weight_impact) }}%)</td>
+                            <td id="detailsImpact"></td>
+                            <td id="detailsWeightedImpact"></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>Final Score</td>
+                            <td></td>
+                            <td id="detailsTotalScore"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Evaluator Scores</h3>
+                <div id="evaluatorScores">
+                    <table class="evaluator-scores-table">
+                        <thead>
+                            <tr>
+                                <th>Evaluator</th>
+                                <th>Design ({{ "%.0f"|format(criteria.weight_project_design) }}%)</th>
+                                <th>Function ({{ "%.0f"|format(criteria.weight_functionality) }}%)</th>
+                                <th>Present ({{ "%.0f"|format(criteria.weight_presentation) }}%)</th>
+                                <th>Web ({{ "%.0f"|format(criteria.weight_web_design) }}%)</th>
+                                <th>Impact ({{ "%.0f"|format(criteria.weight_impact) }}%)</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="evaluatorScoresBody">
+                            <!-- Evaluator scores will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.leaderboard-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+    box-shadow: var(--shadow);
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--card-bg);
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+    padding: 12px 15px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.leaderboard-table th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.leaderboard-table tr:hover {
+    background-color: rgba(0, 119, 111, 0.05);
+}
+
+.leaderboard-table tr.winner {
+    background-color: rgba(255, 215, 0, 0.1);
+    font-weight: bold;
+}
+
+.leaderboard-table tr.winner td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.leaderboard-table .final-score {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Make modals dark mode compatible */
+#winnerModal .modal-content, 
+#detailsModal .modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+#winnerContent h1 {
+    color: gold;
+}
+
+#winnerName {
+    color: var(--text-color);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Winner modal functionality
+    var winnerModal = document.getElementById('winnerModal');
+    var announceBtn = document.getElementById('announceWinner');
+    var winnerSpan = document.getElementsByClassName('close')[0];
+
+    if (announceBtn) {
+        announceBtn.onclick = function() {
+            // Get the winner data (first row in the table)
+            var winnerRow = document.querySelector('.winner');
+            var winnerName = winnerRow.cells[1].textContent;
+            var winnerProject = winnerRow.cells[2].textContent;
+            var winnerScore = winnerRow.cells[8].textContent;
+
+            // Set the data in the modal
+            document.getElementById('winnerName').textContent = winnerName;
+            document.getElementById('winnerProject').textContent = winnerProject;
+            document.getElementById('winnerScore').textContent = 'Score: ' + winnerScore;
+            
+            // Update the display fields in the message
+            document.getElementById('displayGroupNumber').textContent = winnerName;
+            document.getElementById('displayProjectTitle').textContent = winnerProject;
+            document.getElementById('displayFinalScore').textContent = winnerScore;
+
+            // Display the modal
+            winnerModal.style.display = 'block';
+        }
+    }
+
+    // Details modal functionality
+    var detailsModal = document.getElementById('detailsModal');
+    var detailsBtns = document.querySelectorAll('.btn-details');
+    var detailsSpan = document.getElementsByClassName('close')[1];
+
+    detailsBtns.forEach(function(btn) {
+        btn.onclick = function() {
+            var participantId = this.getAttribute('data-id');
+            var row = this.closest('tr');
+
+            // Get the data from the row
+            var name = row.cells[1].textContent;
+            var project = row.cells[2].textContent;
+            var projectDesign = parseFloat(row.cells[3].textContent);
+            var functionality = parseFloat(row.cells[4].textContent);
+            var presentation = parseFloat(row.cells[5].textContent);
+            var webDesign = parseFloat(row.cells[6].textContent);
+            var impact = parseFloat(row.cells[7].textContent);
+            var totalScore = parseFloat(row.cells[8].textContent);
+
+            // Calculate original scores (before weighting)
+            var origProjectDesign = projectDesign / 0.25;
+            var origFunctionality = functionality / 0.30;
+            var origPresentation = presentation / 0.15;
+            var origWebDesign = webDesign / 0.10;
+            var origImpact = impact / 0.20;
+
+            // Set the data in the modal
+            document.getElementById('detailsTitle').textContent = name;
+            document.getElementById('detailsProject').textContent = project;
+
+            document.getElementById('detailsProjectDesign').textContent = origProjectDesign.toFixed(2);
+            document.getElementById('detailsWeightedProjectDesign').textContent = projectDesign.toFixed(2);
+
+            document.getElementById('detailsFunctionality').textContent = origFunctionality.toFixed(2);
+            document.getElementById('detailsWeightedFunctionality').textContent = functionality.toFixed(2);
+
+            document.getElementById('detailsPresentation').textContent = origPresentation.toFixed(2);
+            document.getElementById('detailsWeightedPresentation').textContent = presentation.toFixed(2);
+
+            document.getElementById('detailsWebDesign').textContent = origWebDesign.toFixed(2);
+            document.getElementById('detailsWeightedWebDesign').textContent = webDesign.toFixed(2);
+
+            document.getElementById('detailsImpact').textContent = origImpact.toFixed(2);
+            document.getElementById('detailsWeightedImpact').textContent = impact.toFixed(2);
+
+            document.getElementById('detailsTotalScore').textContent = totalScore.toFixed(2);
+
+            // Clear previous evaluator scores
+            document.getElementById('evaluatorScoresBody').innerHTML = '';
+
+            // Fetch and display evaluator scores
+            fetch('/api/participant/' + participantId + '/evaluations')
+            .then(response => response.json())
+            .then(data => {
+                const evaluatorScoresBody = document.getElementById('evaluatorScoresBody');
+
+                data.evaluations.forEach(eval => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${eval.evaluator_name}</td>
+                        <td>${eval.weighted_project_design.toFixed(2)}</td>
+                        <td>${eval.weighted_functionality.toFixed(2)}</td>
+                        <td>${eval.weighted_presentation.toFixed(2)}</td>
+                        <td>${eval.weighted_web_design.toFixed(2)}</td>
+                        <td>${eval.weighted_impact.toFixed(2)}</td>
+                        <td>${eval.weighted_score.toFixed(2)}</td>
+                    `;
+
+                    evaluatorScoresBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching evaluator data:', error);
+                document.getElementById('evaluatorScoresBody').innerHTML = '<tr><td colspan="7">Error loading evaluator data</td></tr>';
+            });
+
+            // Display the modal
+            detailsModal.style.display = 'block';
+        }
+    });
+
+    // Close modals when clicking the x
+    if (winnerSpan) {
+        winnerSpan.onclick = function() {
+            winnerModal.style.display = 'none';
+        }
+    }
+
+    if (detailsSpan) {
+        detailsSpan.onclick = function() {
+            detailsModal.style.display = 'none';
+        }
+    }
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        if (event.target == winnerModal) {
+            winnerModal.style.display = 'none';
+        }
+        if (event.target == detailsModal) {
+            detailsModal.style.display = 'none';
+        }
+    }
+});
+</script>
+{% endblock %}

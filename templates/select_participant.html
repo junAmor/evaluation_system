@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Participant - Evaluation System{% endblock %}
+
+{% block logo %}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2><i class="fas fa-clipboard-check"></i> Select Group to Evaluate</h2>
+
+    <div class="admin-controls">
+        <form method="POST" action="{{ url_for('reset_evaluations') }}" onsubmit="return confirm('This will delete ALL your evaluations. This action cannot be undone. Are you sure?')">
+            <button type="submit" class="btn btn-warning"><i class="fas fa-redo-alt"></i> Reset My Evaluations</button>
+        </form>
+    </div>
+
+    <div class="participant-grid">
+        {% for participant in all_participants %}
+        <div class="participant-card {% if participant.id in evaluated_participant_ids %}evaluated{% endif %}">
+            <h3>Group {{ participant.group_number }}: {{ participant.name }}</h3>
+            <p class="project-title">{{ participant.project_title }}</p>
+
+            {% if participant.id in evaluated_participant_ids %}
+                <span class="status"><i class="fas fa-check-circle"></i> Evaluated</span>
+                <a href="{{ url_for('edit_evaluation', evaluation_id=evaluation_ids[participant.id]) }}" class="btn btn-secondary">
+                    <i class="fas fa-edit"></i> Edit Evaluation
+                </a>
+            {% else %}
+                <span class="status"><i class="fas fa-clock"></i> Not Evaluated</span>
+                <a href="{{ url_for('rate_participant', participant_id=participant.id) }}" class="btn btn-primary">
+                    <i class="fas fa-star"></i> Evaluate
+                </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

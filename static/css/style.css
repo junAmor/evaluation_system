@@ -1,0 +1,131 @@
+/* Innovative background gradient */
+body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+}
+
+.sidebar {
+    min-height: 100vh;
+    width: 250px;
+    position: fixed;
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.content {
+    margin-left: 250px;
+}
+
+.nav-pills .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.5rem;
+}
+
+.nav-pills .nav-link:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--bs-primary);
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Speed Test Styles */
+#startTest, #restartTest {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+}
+
+.display-4 {
+    font-weight: 600;
+    font-size: 2.5rem;
+}
+
+.progress {
+    height: 1.2rem;
+    border-radius: 0.6rem;
+}
+
+#testStatus {
+    font-size: 1.1rem;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        min-height: auto;
+        margin-bottom: 1rem;
+    }
+
+    .content {
+        margin-left: 0;
+        padding: 1rem !important;
+    }
+
+    .table-responsive {
+        margin-bottom: 1rem;
+    }
+
+    /* Improve form layouts on mobile */
+    .form-range {
+        width: 100%;
+    }
+
+    /* Better spacing for rating sections */
+    .rating-section {
+        padding: 1rem;
+    }
+
+    /* Improve modal sizing on mobile */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    /* Make buttons more touch-friendly */
+    .btn {
+        padding: 0.5rem 1rem;
+        margin: 0.25rem 0;
+    }
+    
+    /* Speed test mobile optimizations */
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    #testResults .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+    
+    #testResults .col-md-6 {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Table improvements */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Rating form improvements */
+.rating-value {
+    min-width: 2.5rem;
+    text-align: right;
+}

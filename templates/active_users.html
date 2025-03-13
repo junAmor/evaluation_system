@@ -1,0 +1,76 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Active Users - Evaluation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2><i class="fas fa-users"></i> Active Users</h2>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-user-shield"></i> Active Admin Users</h3>
+        </div>
+        <div class="card-body">
+            {% if active_admin_users %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in active_admin_users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>
+                            <span class="status-badge active">Active</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No active admin users</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3><i class="fas fa-user-check"></i> Active Evaluator Users</h3>
+        </div>
+        <div class="card-body">
+            {% if active_evaluator_users %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in active_evaluator_users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>
+                            <span class="status-badge active">Active</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No active evaluator users</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('settings') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Settings
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Winner Announcement - Evaluation System{% endblock %}
+
+{% block content %}
+<div class="winner-announcement">
+    <h1 class="announcement-title">2nd Arduino Innovator Challenge Winner</h1>
+    <div class="winner-card">
+        <h2>{{ winner.name if winner else "Group Number" }}</h2>
+        <h3>Project: {{ winner.project_title if winner else "Project Title" }}</h3>
+        
+        <p class="congrats-message">Congratulations on your outstanding achievement! Your creativity, technical skills, and innovation have set a new standard of excellence.</p>
+        
+        <div class="winner-score">
+            <span>Final Score: {{ "%.2f"|format(winner.score) if winner else "" }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

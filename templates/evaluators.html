@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Evaluators - Evaluation System{% endblock %}
+
+{% block head %}
+<style>
+    .evaluator-badge-container {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+    }
+
+    .evaluator-name-badge {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block logo %}{% endblock %}
+
+{% block evaluator_badges %}
+<div class="evaluator-badge-container">
+    {% for evaluator in evaluators %}
+        <span class="evaluator-name-badge">{{ evaluator.username }}</span>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2><i class="fas fa-user-check"></i> Manage Evaluators</h2>
+
+    <div class="form-card">
+        <h3><i class="fas fa-plus-circle"></i> Add New Evaluator</h3>
+        <form method="POST" action="{{ url_for('add_evaluator') }}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Evaluator</button>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <h3><i class="fas fa-list"></i> Current Evaluators</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Status</th>
+                    <th>Evaluations</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evaluator in evaluators %}
+                <tr>
+                    <td>{{ evaluator.username }}</td>
+                    <td>{{ default_passwords.get(evaluator.username, 'Custom') }}</td>
+                    <td>
+                        <span class="status-badge {% if evaluator.is_active %}active{% else %}inactive{% endif %}">
+                            {{ "Active" if evaluator.is_active else "Inactive" }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ evaluator_evaluations[evaluator.id]|length }}
+                    </td>
+                    <td class="action-buttons">
+                        <form method="POST" action="{{ url_for('toggle_evaluator_status', evaluator_id=evaluator.id) }}" class="inline-form">
+                            <button type="submit" class="btn {% if evaluator.is_active %}btn-warning{% else %}btn-success{% endif %} btn-sm">
+                                <i class="fas {% if evaluator.is_active %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                                {{ "Disable" if evaluator.is_active else "Enable" }}
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('delete_evaluator', evaluator_id=evaluator.id) }}" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this evaluator?')">
+                            <button type="submit" class="btn btn-danger btn-sm" {% if evaluator_evaluations[evaluator.id]|length > 0 %}disabled title="Cannot delete evaluator with evaluations"{% endif %}>
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="evaluator-details">
+        <h3><i class="fas fa-clipboard-list"></i> Evaluation Details</h3>
+        {% for evaluator in evaluators %}
+            <div class="evaluator-card">
+                <h4><i class="fas fa-user"></i> Evaluator: {{ evaluator.username }}</h4>
+                {% if evaluator_evaluations[evaluator.id]|length > 0 %}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Group</th>
+                                <th>Project</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in evaluator_evaluations[evaluator.id] %}
+                            <tr>
+                                <td>Group {{ item.participant.group_number }}: {{ item.participant.name }}</td>
+                                <td>{{ item.participant.project_title }}</td>
+                                <td>{{ "%.1f"|format(item.evaluation.total_score) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="notice">No evaluations completed yet.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

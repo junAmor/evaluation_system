@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>{% block title %}Capstone Project Evaluation System{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        // Apply dark mode on page load if it was previously enabled
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+        });
+    </script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                {% if current_user.is_authenticated %}
+                <div class="uep-logo-container">
+                    <img src="{{ url_for('static', filename='UEP_Logo.png') }}" alt="UEP Logo" class="uep-logo">
+                </div>
+                {% endif %}
+                <div class="logo-title">
+                    <img src="{{ url_for('static', filename='arduino_logo.png') }}" alt="Arduino Logo" class="header-logo">
+                    <div class="title-container">
+                        <h1>2nd Arduino Innovator Challenge</h1>
+                        <div class="subtitle">Microcontroller-Based Competition</div>
+                    </div>
+                </div>
+                {% if current_user.is_authenticated %}
+                {% if current_user.role == 'evaluator' %}
+                    <div class="evaluator-badges">
+                        {% for evaluator in evaluators %}
+                            <span class="evaluator-badge">{{ evaluator.username }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div style="position: relative;">
+                    <button class="menu-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="sidebar" id="sidebar">
+                        <div class="sidebar-content">
+                            {% if current_user.role == 'admin' %}
+                            <a href="{{ url_for('participants') }}" class="{% if request.endpoint == 'participants' %}active{% endif %}">
+                                <i class="fas fa-users"></i> <span>Participants</span>
+                            </a>
+                            <a href="{{ url_for('evaluators') }}" class="{% if request.endpoint == 'evaluators' %}active{% endif %}">
+                                <i class="fas fa-user-check"></i> <span>Evaluators</span>
+                            </a>
+                            <a href="{{ url_for('leaderboard') }}" class="{% if request.endpoint == 'leaderboard' %}active{% endif %}">
+                                <i class="fas fa-trophy"></i> <span>Leaderboard</span>
+                            </a>
+                            <a href="{{ url_for('settings') }}" class="{% if request.endpoint == 'settings' %}active{% endif %}">
+                                <i class="fas fa-cog"></i> <span>Settings</span>
+                            </a>
+                            {% elif current_user.role == 'evaluator' %}
+                            <a href="{{ url_for('select_participant') }}" class="{% if request.endpoint == 'select_participant' %}active{% endif %}">
+                                <i class="fas fa-clipboard-check"></i> <span>Evaluate</span>
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="content">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}
+            <div id="winner-announcement" class="dark-mode-adaptable">
+                <h1>🏆 Winner Announcement 🏆</h1>
+                <p>We are thrilled to announce the Champion of the 2nd Arduino Innovator Challenge! 🎉</p>
+                <p>After an impressive showcase of innovation, creativity, and technical expertise, the title goes to:</p>
+                <p>🥇 {% if winner %}{{ winner.name }}{% else %}Group Number{% endif %} - {% if winner %}{{ winner.project_title }}{% else %}Project Title{% endif %}</p>
+                <p>Congratulations on your outstanding achievement! Your creativity, technical skills, and innovation have set a new standard of excellence.</p>
+                <p>Final Score: {% if winner %}{{ "%.2f"|format(winner.score) }}{% endif %}</p>
+                <p>We commend all participants for their remarkable efforts and contributions to the world of innovation.</p>
+                <p>Stay inspired, keep creating, and continue pushing the boundaries of technology! 🚀</p>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Online Evaluation System</p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/mobile-improvements.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    sidebar.classList.toggle('active');
+                });
+
+                // Close sidebar when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (sidebar && !sidebar.contains(event.target) && 
+                        sidebarToggle && !sidebarToggle.contains(event.target) && 
+                        sidebar.classList.contains('active')) {
+                        sidebar.classList.remove('active');
+                    }
+                });
+
+                // Also close when clicking a link
+                const sidebarLinks = sidebar.querySelectorAll('a');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        sidebar.classList.remove('active');
+                    });
+                });
+            }
+
+            // Dark mode toggle functionality
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                const themeIcon = themeToggle.querySelector('i');
+                if (themeIcon) {
+                    // Check for saved theme preference or respect OS preference
+                    const savedTheme = localStorage.getItem('theme');
+
+                    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        document.documentElement.classList.add('dark-mode');
+                        themeIcon.classList.remove('fa-moon');
+                        themeIcon.classList.add('fa-sun');
+                    }
+
+                    // Toggle theme
+                    themeToggle.addEventListener('click', function() {
+                        document.documentElement.classList.toggle('dark-mode');
+
+                        // Update icon
+                        if (document.documentElement.classList.contains('dark-mode')) {
+                            themeIcon.classList.remove('fa-moon');
+                            themeIcon.classList.add('fa-sun');
+                            localStorage.setItem('theme', 'dark');
+                        } else {
+                            themeIcon.classList.remove('fa-sun');
+                            themeIcon.classList.add('fa-moon');
+                            localStorage.setItem('theme', 'light');
+                        }
+                    });
+                }
+            }
+            
+            // Fix for modals on mobile
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (modal) {
+                    const closeBtn = modal.querySelector('.close-modal');
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', function() {
+                            modal.style.display = 'none';
+                        });
+                    }
+                }
+            });
+            
+            // Add meta viewport tag for better mobile scaling if not already present
+            if (!document.querySelector('meta[name="viewport"]')) {
+                const metaViewport = document.createElement('meta');
+                metaViewport.name = 'viewport';
+                metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
+                document.head.appendChild(metaViewport);
+            }
+        });
+    </script>
+</body>
+</html>
