@@ -179,13 +179,12 @@ def leaderboard():
     # Sort participants by score after calculation
     participants = sorted(participants, key=lambda p: p.score, reverse=True)
 
-    return render_template('leaderboard.html', data={
-                          'participants': participants,
-                          'all_evaluations_complete': all_evaluations_complete,
-                          'completed_evaluations': total_actual,
-                          'total_evaluations': total_expected,
-                          'criteria': criteria
-                      })
+    return render_template('leaderboard.html',
+                         participants=participants,
+                         all_evaluations_complete=all_evaluations_complete,
+                         completed_evaluations=total_actual,
+                         total_evaluations=total_expected,
+                         criteria=criteria)
 
 @app.route('/api/participant/<int:participant_id>/evaluations')
 @login_required
