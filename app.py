@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
@@ -14,23 +14,14 @@ login_manager = LoginManager()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "default-secret-key")
 
-# Configure session settings
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
-app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_COOKIE_NAME'] = 'evaluation_session'
-
-# Configure database settings
-database_url = os.environ.get("DATABASE_URL")
+# Database Configuration
+database_url = os.getenv("DATABASE_URL")
 
 if database_url:
-    # Ensure compatibility with SQLAlchemy
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
 
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-
-    # Connection pool settings for PostgreSQL
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300,
         "pool_pre_ping": True,
@@ -38,7 +29,6 @@ if database_url:
         "max_overflow": 20
     }
 else:
-    # Use SQLite for local development
     db_path = os.path.join(os.path.abspath(os.getcwd()), 'project.db')
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 
@@ -49,20 +39,23 @@ db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Import models and routes
+# Apply PRAGMA only if using SQLite
 with app.app_context():
     import models
     import routes
 
-    # Ensure the database is created only for SQLite
+    if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+        with db.engine.connect() as conn:
+            conn.execute("PRAGMA foreign_keys=ON")  # ✅ Now runs only for SQLite
+
+    # Database initialization (only for SQLite)
     if not database_url:
         db.create_all()
 
-    # Perform initial setup for PostgreSQL only if migrations are handled
+    # Add default data if necessary
     from models import User, EvaluatorPassword, EventDetails, EvaluationCriteria
     from werkzeug.security import generate_password_hash
 
-    # Create default admin account if not exists
     if not User.query.filter_by(username='admin').first():
         admin = User(
             username='admin',
@@ -71,7 +64,6 @@ with app.app_context():
         )
         db.session.add(admin)
 
-    # Add default event details if none exist
     if not EventDetails.query.first():
         default_event_details = EventDetails()
         db.session.add(default_event_details)
