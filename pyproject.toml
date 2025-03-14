@@ -3,10 +3,9 @@ name = "evaluation_system"
 version = "0.1.0"
 description = "Evaluation system using Flask"
 authors = ["Jerome Brenz"]
-requires-python = ">=3.11"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11"
 flask = "^3.1.0"
 flask-sqlalchemy = "^3.1.1"
 flask-login = "^0.6.3"
