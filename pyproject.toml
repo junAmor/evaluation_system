@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "evaluation_system"
 version = "0.1.0"
-description = "This system is about showing the rankings of challengers in the Leaderboard. It is also for judges to evaluate the participants based on their performances."
-authors = ["Jerome Brenzuela <jeromebrenzuela935@gmail.com>"]
+description = "Evaluation system using Flask"
+authors = ["Jerome Brenz"]
+
 
 requires-python = ">=3.11"
 dependencies = [
@@ -20,6 +21,7 @@ dependencies = [
     "xlsxwriter>=3.2.2",
     "pdfkit>=1.0.0",
 ]
+
 
 [tool.poetry.dependencies]
 python = "^3.8"
