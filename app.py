@@ -14,32 +14,22 @@ login_manager = LoginManager()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "default-secret-key")
 
-# Configure session to be more secure and support multiple users
+# Configure session settings
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)  # Session lifetime
-app.config['SESSION_USE_SIGNER'] = True  # Sign the session cookie
-app.config['SESSION_COOKIE_NAME'] = 'evaluation_session'  # Custom session cookie name
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_COOKIE_NAME'] = 'evaluation_session'
 
-# Configure database for persistence
+# Configure database settings
 database_url = os.environ.get("DATABASE_URL")
-if database_url is None:
-    # Use a SQLite database in the instance folder for persistence
-    db_path = os.path.join(app.instance_path, 'project.db')
-    # Ensure instance folder exists
-    os.makedirs(app.instance_path, exist_ok=True)
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
-    
-    # Additional SQLite-specific options for better persistence
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "connect_args": {"check_same_thread": False},
-        "poolclass": None,  # Disable connection pooling for SQLite
-    }
-else:
-    # Format the URL for SQLAlchemy if using Postgres
+
+if database_url:
+    # Ensure compatibility with SQLAlchemy
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
+
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    
+
     # Connection pool settings for PostgreSQL
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300,
@@ -47,6 +37,10 @@ else:
         "pool_size": 10,
         "max_overflow": 20
     }
+else:
+    # Use SQLite for local development
+    db_path = os.path.join(os.path.abspath(os.getcwd()), 'project.db')
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -55,15 +49,20 @@ db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# Import models and routes
 with app.app_context():
     import models
     import routes
-    db.create_all()
 
-    # Create default admin account if it doesn't exist
+    # Ensure the database is created only for SQLite
+    if not database_url:
+        db.create_all()
+
+    # Perform initial setup for PostgreSQL only if migrations are handled
     from models import User, EvaluatorPassword, EventDetails, EvaluationCriteria
     from werkzeug.security import generate_password_hash
 
+    # Create default admin account if not exists
     if not User.query.filter_by(username='admin').first():
         admin = User(
             username='admin',
@@ -74,8 +73,7 @@ with app.app_context():
 
     # Add default event details if none exist
     if not EventDetails.query.first():
-        default_event_details = EventDetails() # Assuming EventDetails model has a default constructor
+        default_event_details = EventDetails()
         db.session.add(default_event_details)
-
 
     db.session.commit()
