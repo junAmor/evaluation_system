@@ -8,24 +8,8 @@ from datetime import datetime
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-class EventDetails(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    event_name = db.Column(db.String(200), nullable=False, default="Arduino Innovator Challenge")
-    event_description = db.Column(db.Text, nullable=True, default="An innovative challenge for Arduino enthusiasts")
-    logo_path = db.Column(db.String(200), nullable=True)
-    
-class EvaluatorPassword(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
-    password = db.Column(db.String(64), nullable=False)
-
-db = SQLAlchemy()
-from app import db
-from flask_login import UserMixin
-
-class User(db.Model, UserMixin):  # ✅ Add `UserMixin` to include default Flask-Login methods
-    __tablename__ = "users"  # ✅ Renamed from "user" to avoid PostgreSQL conflict
-
+class User(db.Model, UserMixin):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
@@ -33,8 +17,28 @@ class User(db.Model, UserMixin):  # ✅ Add `UserMixin` to include default Flask
     is_active = db.Column(db.Boolean, default=True)
 
     def get_id(self):
-        """✅ Required method for Flask-Login to return the user's ID"""
         return str(self.id)
+
+class EventDetails(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_name = db.Column(db.String(200), nullable=False, default="Arduino Innovator Challenge")
+    event_description = db.Column(db.Text, nullable=True, default="An innovative challenge for Arduino enthusiasts")
+    logo_path = db.Column(db.String(200), nullable=True)
+
+class EvaluatorPassword(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    password = db.Column(db.String(64), nullable=False)
+
+class EvaluationCriteria(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    weight_project_design = db.Column(db.Float, default=20.0)
+    weight_functionality = db.Column(db.Float, default=20.0)
+    weight_presentation = db.Column(db.Float, default=20.0)
+    weight_web_design = db.Column(db.Float, default=20.0)
+    weight_impact = db.Column(db.Float, default=20.0)
+    score_precision = db.Column(db.Integer, default=1)
+    min_score = db.Column(db.Float, default=0)
 
 
 class Participant(db.Model):
@@ -45,32 +49,20 @@ class Participant(db.Model):
     score = db.Column(db.Float, default=0.0)
     evaluations = db.relationship('Evaluation', backref='participant', lazy=True)
 
-class EvaluationCriteria(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    weight_project_design = db.Column(db.Float, nullable=False, default=25.0)
-    weight_functionality = db.Column(db.Float, nullable=False, default=30.0)
-    weight_presentation = db.Column(db.Float, nullable=False, default=15.0)
-    weight_web_design = db.Column(db.Float, nullable=False, default=10.0)
-    weight_impact = db.Column(db.Float, nullable=False, default=20.0)
-    score_precision = db.Column(db.Integer, nullable=False, default=2)
-    min_score = db.Column(db.Float, nullable=False, default=1.0)
-    max_score = db.Column(db.Float, nullable=False, default=100.0)
-
 class Evaluation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    evaluator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     participant_id = db.Column(db.Integer, db.ForeignKey('participant.id'), nullable=False)
-    evaluator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    project_design = db.Column(db.Float, nullable=False)  # 25%
-    functionality = db.Column(db.Float, nullable=False)   # 30%
-    presentation = db.Column(db.Float, nullable=False)    # 15%
-    web_design = db.Column(db.Float, nullable=False)      # 10%
-    impact = db.Column(db.Float, nullable=False)          # 20%
+    project_design = db.Column(db.Float, nullable=False)
+    functionality = db.Column(db.Float, nullable=False)
+    presentation = db.Column(db.Float, nullable=False)
+    web_design = db.Column(db.Float, nullable=False)
+    impact = db.Column(db.Float, nullable=False)
     comments = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     @property
     def total_score(self):
-        # Weighted score calculation as explained in the requirements
-        # Project Design (25%) + Functionality (30%) + Presentation (15%) + Web Design (10%) + Impact (20%)
         return (
             self.project_design * 0.25 +
             self.functionality * 0.30 +
