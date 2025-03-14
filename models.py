@@ -7,15 +7,6 @@ from datetime import datetime
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@event.listens_for(db.engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Enforce foreign key constraints only for SQLite."""
-    if "sqlite" in app.config["SQLALCHEMY_DATABASE_URI"]:  # ✅ Run only for SQLite
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging for better concurrency
-        cursor.close()
-
 class EventDetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_name = db.Column(db.String(200), nullable=False, default="Arduino Innovator Challenge")
