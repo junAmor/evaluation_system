@@ -7,14 +7,14 @@ from datetime import datetime
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Add database event listeners for better persistence
 @event.listens_for(db.engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Enforce foreign key constraints for SQLite"""
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging for better concurrency
-    cursor.close()
+    """Enforce foreign key constraints only for SQLite."""
+    if "sqlite" in app.config["SQLALCHEMY_DATABASE_URI"]:  # ✅ Run only for SQLite
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging for better concurrency
+        cursor.close()
 
 class EventDetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)

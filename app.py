@@ -39,18 +39,18 @@ db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Apply PRAGMA only if using SQLite
 with app.app_context():
     import models
     import routes
 
-    if app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+    # Only apply PRAGMA for SQLite
+    if "sqlite" in app.config["SQLALCHEMY_DATABASE_URI"]:
         with db.engine.connect() as conn:
-            conn.execute("PRAGMA foreign_keys=ON")  # ✅ Now runs only for SQLite
+            conn.execute("PRAGMA foreign_keys=ON")
 
-    # Database initialization (only for SQLite)
-    if not database_url:
-        db.create_all()
+    # Database migrations for PostgreSQL
+    if database_url:
+        print("Using PostgreSQL - Run migrations separately")
 
     # Add default data if necessary
     from models import User, EvaluatorPassword, EventDetails, EvaluationCriteria
