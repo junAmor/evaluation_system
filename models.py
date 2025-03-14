@@ -61,11 +61,11 @@ class Participant(db.Model):
                                   backref='participant',
                                   lazy=True)
 class Evaluation(db.Model):
-    __tablename__ = "evaluation"  # ✅ Ensure correct table name
+    __tablename__ = "evaluation"
 
     id = db.Column(db.Integer, primary_key=True)
     evaluator_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    participant_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey("participant.id"), nullable=False)
     project_design = db.Column(db.Float, nullable=False)
     functionality = db.Column(db.Float, nullable=False)
     presentation = db.Column(db.Float, nullable=False)
