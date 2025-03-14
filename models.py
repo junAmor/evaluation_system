@@ -1,3 +1,4 @@
+from flask_sqlalchemy import SQLAlchemy
 from app import db, login_manager
 from flask_login import UserMixin
 from sqlalchemy import event
@@ -18,11 +19,15 @@ class EvaluatorPassword(db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     password = db.Column(db.String(64), nullable=False)
 
-class User(UserMixin, db.Model):
+db = SQLAlchemy()
+
+class User(db.Model):
+    __tablename__ = "users"  # ✅ Rename the table to "users" to avoid conflicts
+
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(50), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
 
 class Participant(db.Model):
