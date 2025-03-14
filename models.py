@@ -21,8 +21,9 @@ class EvaluatorPassword(db.Model):
 
 db = SQLAlchemy()
 from app import db
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(db.Model, UserMixin):  # ✅ Add `UserMixin` to include default Flask-Login methods
     __tablename__ = "users"  # ✅ Renamed from "user" to avoid PostgreSQL conflict
 
     id = db.Column(db.Integer, primary_key=True)
@@ -30,6 +31,10 @@ class User(db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(50), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+
+    def get_id(self):
+        """✅ Required method for Flask-Login to return the user's ID"""
+        return str(self.id)
 
 
 class Participant(db.Model):
