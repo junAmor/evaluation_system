@@ -9,13 +9,15 @@ from datetime import timedelta
 class Base(DeclarativeBase):
     pass
 
+# ✅ Define db before app, but do not bind it yet
 db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 
+# ✅ Create the Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "default-secret-key")
 
-# Database Configuration
+# ✅ Configure the database
 database_url = os.getenv("DATABASE_URL")
 
 if database_url:
@@ -29,23 +31,21 @@ else:
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# ✅ Initialize Flask Extensions
+# ✅ Initialize extensions AFTER creating the app
 db.init_app(app)
 login_manager.init_app(app)
 
-# ✅ Ensure queries run inside app context
+# ✅ Ensure all queries run inside app context
 with app.app_context():
     import models
     import routes
     db.create_all()  # ✅ Create tables inside app context
 
-    # ✅ Wrap database queries inside app context
     from models import User, EvaluatorPassword, EventDetails, EvaluationCriteria
     from werkzeug.security import generate_password_hash
 
-    # ✅ Check if admin exists before adding
-    admin = User.query.filter_by(username='admin').first()
-    if not admin:
+    # ✅ Run queries inside app context
+    if not User.query.filter_by(username='admin').first():
         admin = User(
             username='admin',
             password_hash=generate_password_hash('admin123'),
@@ -53,7 +53,6 @@ with app.app_context():
         )
         db.session.add(admin)
 
-    # ✅ Check if EventDetails exists before adding
     if not EventDetails.query.first():
         default_event_details = EventDetails()
         db.session.add(default_event_details)
