@@ -65,10 +65,11 @@ class Evaluation(db.Model):
     __tablename__ = "evaluations"  # ✅ Ensure correct table name
 
     id = db.Column(db.Integer, primary_key=True)
-    participant_id = db.Column(db.Integer, db.ForeignKey("participants.id", ondelete="CASCADE"), nullable=False)
+    evaluator_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ✅ Ensure evaluator_id exists
+    participant_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
-    # ✅ Correct relationship to Participant
-    participant = db.relationship('Participant', back_populates="evaluations")
+    evaluator = db.relationship("User", foreign_keys=[evaluator_id])  # ✅ Reference the User model
+    participant = db.relationship("User", foreign_keys=[participant_id])  # ✅ Reference the User model
 
     project_design = db.Column(db.Float, nullable=False)
     functionality = db.Column(db.Float, nullable=False)
