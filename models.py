@@ -4,9 +4,11 @@ from flask_login import UserMixin
 from sqlalchemy import event
 from datetime import datetime
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -19,16 +21,24 @@ class User(db.Model, UserMixin):
     def get_id(self):
         return str(self.id)
 
+
 class EventDetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    event_name = db.Column(db.String(200), nullable=False, default="Arduino Innovator Challenge")
-    event_description = db.Column(db.Text, nullable=True, default="An innovative challenge for Arduino enthusiasts")
+    event_name = db.Column(db.String(200),
+                           nullable=False,
+                           default="Arduino Innovator Challenge")
+    event_description = db.Column(
+        db.Text,
+        nullable=True,
+        default="An innovative challenge for Arduino enthusiasts")
     logo_path = db.Column(db.String(200), nullable=True)
+
 
 class EvaluatorPassword(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password = db.Column(db.String(64), nullable=False)
+
 
 class EvaluationCriteria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,26 +57,25 @@ class Participant(db.Model):
     name = db.Column(db.String(100), nullable=False)
     project_title = db.Column(db.String(200), nullable=False)
     score = db.Column(db.Float, default=0.0)
-    evaluations = db.relationship('Evaluation', backref='participant', lazy=True)
-
+    evaluations = db.relationship('Evaluation',
+                                  backref='participant',
+                                  lazy=True)
 class Evaluation(db.Model):
+    __tablename__ = "evaluation"  # ✅ Ensure correct table name
+
     id = db.Column(db.Integer, primary_key=True)
-    evaluator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    participant_id = db.Column(db.Integer, db.ForeignKey('participant.id'), nullable=False)
+    evaluator_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     project_design = db.Column(db.Float, nullable=False)
     functionality = db.Column(db.Float, nullable=False)
     presentation = db.Column(db.Float, nullable=False)
     web_design = db.Column(db.Float, nullable=False)
     impact = db.Column(db.Float, nullable=False)
-    comments = db.Column(db.Text)
+    comments = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     @property
     def total_score(self):
-        return (
-            self.project_design * 0.25 +
-            self.functionality * 0.30 +
-            self.presentation * 0.15 +
-            self.web_design * 0.10 +
-            self.impact * 0.20
-        )
+        return (self.project_design * 0.25 + self.functionality * 0.30 +
+                self.presentation * 0.15 + self.web_design * 0.10 +
+                self.impact * 0.20)
