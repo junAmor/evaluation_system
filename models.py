@@ -52,27 +52,30 @@ class EvaluationCriteria(db.Model):
 
 
 class Participant(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    group_number = db.Column(db.Integer, nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    project_title = db.Column(db.String(200), nullable=False)
-    score = db.Column(db.Float, default=0.0)
-    evaluations = db.relationship('Evaluation',
-                                  backref='participant',
-                                  lazy=True)
-class Evaluation(db.Model):
-    __tablename__ = "evaluation"
+    __tablename__ = "participants"  # ✅ Ensure correct table name
 
     id = db.Column(db.Integer, primary_key=True)
-    evaluator_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    participant_id = db.Column(db.Integer, db.ForeignKey("participant.id"), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+
+    # ✅ Correct relationship to Evaluation
+    evaluations = db.relationship('Evaluation', back_populates="participant", cascade="all, delete-orphan")
+
+
+class Evaluation(db.Model):
+    __tablename__ = "evaluations"  # ✅ Ensure correct table name
+
+    id = db.Column(db.Integer, primary_key=True)
+    participant_id = db.Column(db.Integer, db.ForeignKey("participants.id", ondelete="CASCADE"), nullable=False)
+
+    # ✅ Correct relationship to Participant
+    participant = db.relationship('Participant', back_populates="evaluations")
+
     project_design = db.Column(db.Float, nullable=False)
     functionality = db.Column(db.Float, nullable=False)
     presentation = db.Column(db.Float, nullable=False)
     web_design = db.Column(db.Float, nullable=False)
     impact = db.Column(db.Float, nullable=False)
     comments = db.Column(db.Text, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     @property
     def total_score(self):
