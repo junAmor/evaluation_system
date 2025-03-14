@@ -179,11 +179,13 @@ def leaderboard():
     # Sort participants by score after calculation
     participants = sorted(participants, key=lambda p: p.score, reverse=True)
 
-    return render_template('leaderboard.html', participants=participants, 
-                          all_evaluations_complete=all_evaluations_complete,
-                          completed_evaluations=total_actual,
-                          total_evaluations=total_expected,
-                          criteria=criteria)
+    return render_template('leaderboard.html', data={
+                          'participants': participants,
+                          'all_evaluations_complete': all_evaluations_complete,
+                          'completed_evaluations': total_actual,
+                          'total_evaluations': total_expected,
+                          'criteria': criteria
+                      })
 
 @app.route('/api/participant/<int:participant_id>/evaluations')
 @login_required
@@ -341,12 +343,12 @@ def leaderboard_data():
     # Sort participants by score
     participants_data = sorted(participants_data, key=lambda p: p['score'], reverse=True)
 
-    return {
+    return jsonify({
         'participants': participants_data,
         'all_evaluations_complete': all_evaluations_complete,
         'completed_evaluations': total_actual,
         'total_evaluations': total_expected
-    }
+    })
 
 @app.route('/evaluators')
 @login_required
